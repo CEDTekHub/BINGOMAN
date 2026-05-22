@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ NEO-BINGO // Premium Creator & Live Host Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        oled: '#030303',
+                        glass: 'rgba(15, 15, 25, 0.7)',
+                        neonBlue: '#00f0ff',
+                        neonPink: '#ff007f',
+                        neonPurple: '#9d00ff',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        neonCyan: '0 0 15px rgba(0, 240, 255, 0.45)',
+                        neonPink: '0 0 15px rgba(255, 0, 127, 0.45)',
+                        neonPurple: '0 0 15px rgba(157, 0, 255, 0.45)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons for modern HUD interface -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Inter Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030303;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(157, 0, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 240, 255, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .header-title {
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(10, 10, 18, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .neon-border-blue {
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+
+        .neon-border-blue:focus-within, .neon-border-blue:hover {
+            border-color: #00f0ff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+        }
+
+        .neon-border-pink {
+            border-color: rgba(255, 0, 127, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.1);
+        }
+
+        .neon-border-pink:focus-within, .neon-border-pink:hover {
+            border-color: #ff007f;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 10, 18, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Grid Strict Aspect Control */
+        .bingo-grid {
+            display: grid;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            gap: 8px;
+        }
+
+        .bingo-cell {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bingo-cell.active-drag-over {
+            border-color: #00f0ff;
+            background: rgba(0, 240, 255, 0.1);
+            transform: scale(0.98);
+        }
+
+        /* Custom Sound Switch / Pulse effect */
+        @keyframes pulse-cyan {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(0, 240, 255, 0.8); }
+        }
+        .pulse-neon-cyan {
+            animation: pulse-cyan 2s infinite;
+        }
+
+        @keyframes pulse-pink {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(255, 0, 127, 0.8); }
+        }
+        .pulse-neon-pink {
+            animation: pulse-pink 2s infinite;
+        }
+
+        /* Watermark styling */
+        .watermark-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            font-size: 4rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            transform: rotate(-30deg);
+            opacity: 0.05;
+            user-select: none;
+            z-index: 5;
+        }
+
+        /* Printable Mode Styling overrides */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .print-card-wrapper {
+                page-break-after: always;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 2cm !important;
+                box-shadow: none !important;
+                background: white !important;
+                border: none !important;
+                color: black !important;
+            }
+            .bingo-cell {
+                border: 2px solid #000 !important;
+                background: #fff !important;
+                color: #000 !important;
+            }
+            .bingo-cell span, .bingo-cell input {
+                color: #000 !important;
+            }
+            .watermark-overlay {
+                color: #000 !important;
+                opacity: 0.1 !important;
+            }
+            
+            /* Custom print formats styling settings based on selections */
+            @page {
+                margin: 0;
+            }
+            .format-portrait {
+                size: portrait;
+            }
+            .format-landscape {
+                size: landscape;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col antialiased pb-12 selection:bg-neonPink selection:text-white">
+
+    <!-- HEADER HUD -->
+    <header class="no-print w-full border-b border-white/10 glass-panel py-4 px-6 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-40 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-neonPurple via-neonPink to-neonBlue flex items-center justify-center text-white font-black text-xl shadow-neonCyan animate-spin-slow">
+                <i class="fa-solid fa-ticket"></i>
+            </div>
+            <div>
+                <h1 class="header-title text-xl md:text-2xl font-black bg-gradient-to-r from-white via-neonBlue to-neonPink bg-clip-text text-transparent">
+                    NEO-BINGO
+                </h1>
+                <p class="text-xs text-neonBlue/80 tracking-widest font-mono uppercase">Premium OLED Design Suite</p>
+            </div>
+        </div>
+
+        <!-- Quick Controls -->
+        <div class="flex items-center gap-3 font-mono text-sm">
+            <!-- Audio Trigger Option -->
+            <button id="soundToggle" onclick="toggleAudio()" class="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-neonPink/10 hover:border-neonPink transition-all flex items-center gap-2 text-neonPink">
+                <i class="fa-solid fa-volume-high" id="soundIcon"></i> <span id="soundStatus" class="hidden sm:inline">SOUND: ON</span>
+            </button>
+            <div class="px-4 py-1.5 rounded-full border border-neonBlue/20 bg-neonBlue/5 text-neonBlue flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-neonBlue animate-pulse"></span>
+                <span>HOST SESSION: LIVE</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CREATIVE STUDIO & LIVE HOST PLATFORM -->
+    <main class="no-print flex-grow w-full max-w-7xl mx-auto px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT CONTROL BOARD: CONFIGURATION, DESIGN & ASSET TRAY (5 columns) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- STEP 1: CARD SETTINGS PANEL -->
+            <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-neonBlue flex flex-col gap-4">
+                <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                    <h3 class="font-bold text-lg text-neonBlue flex items-center gap-2 font-mono">
+                        <span class="text-xs bg-neonBlue/20 text-neonBlue px-2 py-0.5 rounded font-sans">01</span>
+                        GRID SETUP
+                    </h3>
+                    <i class="fa-solid fa-sliders text-white/40"></i>
+                </div>
+                
+                <!-- Grid Dimensions selection -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setGridSize(3)" id="grid-btn-3" class="grid-btn py-2.5 rounded-lg border border-white/10 bg-white/5 text-center font-mono font-bold hover:bg-white/10 transition-all text-sm">
+                        3 x 3
+                    </button>
+                    <button onclick="setGridSize(4)" id="grid-btn-4" class="grid-btn py-2.5 rounded-lg border border-white/10 bg-white/5 text-center font-mono font-bold hover:bg-white/10 transition-all text-sm">
+                        4 x 4
+                    </button>
+                    <button onclick="setGridSize(5)" id="grid-btn-5" class="grid-btn py-2.5 rounded-lg border-2 border-neonBlue bg-neonBlue/10 text-center font-mono font-bold transition-all text-sm text-neonBlue shadow-neonCyan">
+                        5 x 5 (Default)
+                    </button>
+                </div>
+
+                <!-- Custom Header & Footer text -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                    <div>
+                        <label class="block text-xs font-mono text-white/60 uppercase mb-1">Header Title</label>
+                        <input type="text" id="cardHeaderInput" oninput="updateCardBranding()" value="NEO BINGO" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-neonBlue text-white font-bold tracking-wider">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-white/60 uppercase mb-1">Footer Subtitle</label>
+                        <input type="text" id="cardFooterInput" oninput="updateCardBranding()" value="PLAY TO WIN • GET 5 IN A ROW" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-neonBlue text-white/80 text-xs">
+                    </div>
+                </div>
+
+                <!-- Watermark Controls -->
+                <div class="bg-white/5 p-3 rounded-lg border border-white/10 flex flex-wrap items-center justify-between gap-3 mt-1">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="toggleWatermark" onchange="toggleWatermarkAction(this.checked)" checked class="w-4 h-4 rounded accent-neonBlue bg-black border-white/20">
+                        <label for="toggleWatermark" class="text-sm font-mono cursor-pointer select-none">Enable Watermark</label>
+                    </div>
+                    <div class="flex items-center gap-2 flex-grow sm:justify-end">
+                        <span class="text-xs font-mono text-white/40">Opacity</span>
+                        <input type="range" id="watermarkOpacity" oninput="adjustWatermarkOpacity(this.value)" min="1" max="15" value="5" class="w-24 accent-neonBlue h-1 bg-white/10 rounded-lg">
+                    </div>
+                </div>
+
+                <!-- Center Cell FREE Text Switch (only valid on odd grids like 3x3 and 5x5) -->
+                <div id="freeCellOptionWrapper" class="bg-white/5 p-3 rounded-lg border border-white/10 flex items-center justify-between">
+                    <div class="flex flex-col">
+                        <span class="text-sm font-semibold">Center FREE Space</span>
+                        <span class="text-xs text-white/50">Keep the absolute center cell free</span>
+                    </div>
+                    <input type="text" id="freeCellText" oninput="updateFreeText(this.value)" value="FREE" class="w-24 bg-black/50 border border-white/10 rounded px-2 py-1 text-center font-bold text-xs focus:outline-none focus:border-neonPink text-neonPink">
+                </div>
+            </div>
+
+            <!-- STEP 2: IMAGE UPLOAD & ASSET TRAY -->
+            <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-neonPink flex flex-col gap-4">
+                <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                    <h3 class="font-bold text-lg text-neonPink flex items-center gap-2 font-mono">
+                        <span class="text-xs bg-neonPink/20 text-neonPink px-2 py-0.5 rounded font-sans">02</span>
+                        IMAGE LIBRARY
+                    </h3>
+                    <span id="assetCounter" class="text-xs font-mono px-2 py-1 rounded bg-white/10 text-white/80">0 ASSETS</span>
+                </div>
+
+                <p class="text-xs text-white/60 leading-relaxed">
+                    Upload or choose default images to build your Bingo. Drag them onto cells or use Auto-Distribute. High resolution supported.
+                </p>
+
+                <!-- File Drag and Drop Trigger Zone -->
+                <div id="dropzone" class="border-2 border-dashed border-white/20 hover:border-neonPink rounded-xl p-4 text-center cursor-pointer bg-white/5 transition-all flex flex-col items-center gap-2 relative">
+                    <input type="file" id="fileUploadInput" multiple accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleImageUploads(event)">
+                    <div class="w-10 h-10 rounded-full bg-neonPink/10 text-neonPink flex items-center justify-center">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <div>
+                        <span class="text-sm font-bold block">Drag & Drop images here</span>
+                        <span class="text-xs text-white/40">or click to browse from device</span>
+                    </div>
+                </div>
+
+                <!-- Custom Stock Image Creator (Quick mock generator for placeholder convenience) -->
+                <div class="flex gap-2">
+                    <button onclick="loadSampleSymbols()" class="flex-1 py-1.5 px-3 rounded-lg bg-white/5 border border-white/10 hover:border-neonPurple/50 hover:bg-neonPurple/10 transition-all text-xs font-mono flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-images"></i> Load 25 Neon Symbols
+                    </button>
+                    <button onclick="clearAssetTray()" class="py-1.5 px-3 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 transition-all text-xs font-mono flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> Clear
+                    </button>
+                </div>
+
+                <!-- Asset Tray Grid Container (Searchable) -->
+                <div class="flex flex-col gap-2">
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-white/30 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="assetSearch" oninput="filterAssets(this.value)" placeholder="Search uploaded assets..." class="w-full bg-black/60 border border-white/10 rounded-lg pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-neonPink">
+                    </div>
+                    
+                    <!-- Scrollable shelf -->
+                    <div id="assetTrayShelf" class="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1 bg-black/40 rounded-xl border border-white/5">
+                        <!-- Instantiated dynamically -->
+                        <div class="col-span-full py-6 text-center text-xs text-white/30 font-mono">
+                            No assets. Load samples or upload your own.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto Distribute Options -->
+                <div class="grid grid-cols-1 gap-2 bg-black/50 p-3 rounded-xl border border-white/5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-mono text-white/60">No Duplicates Mode</span>
+                        <input type="checkbox" id="noDuplicatesToggle" checked class="w-4 h-4 accent-neonPink rounded bg-black">
+                    </div>
+                    <button onclick="autoDistributeAssets()" class="w-full py-2 bg-gradient-to-r from-neonPink to-neonPurple rounded-lg text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-neonPink hover:brightness-110 active:scale-95 transition-all">
+                        <i class="fa-solid fa-shuffle"></i> Auto-Fill Grid
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- CENTER DISPLAY: REAL-TIME BINGO CARD CREATOR PREVIEW (7 columns) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+
+            <!-- MAIN WORKSPACE AND BINGO PREVIEW UNIT -->
+            <div class="glass-panel rounded-2xl p-6 border border-white/10 flex flex-col gap-4 relative">
+                
+                <!-- Quick Board Mode Actions bar -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                        <span class="font-mono text-sm tracking-widest font-semibold">BUILDER WORKSPACE</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <button onclick="clearCardGrid()" class="text-xs font-mono text-white/60 hover:text-white px-2 py-1 rounded bg-white/5 border border-white/10 hover:border-red-500/50 transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-eraser"></i> Clear Card
+                        </button>
+                        <button onclick="triggerPrintModal()" class="text-xs font-mono text-neonBlue hover:text-white px-3 py-1 rounded bg-neonBlue/10 border border-neonBlue/20 hover:border-neonBlue transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-print"></i> EXPORT TO PRINT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- THE PREMIUM INTERACTIVE BINGO CARD PREVIEW (What gets printed/designed) -->
+                <div class="flex justify-center items-center w-full py-4">
+                    
+                    <!-- Grid Wrapper containing Card header, main grid, card footer, watermarks, styled for real-time OLED theme -->
+                    <div id="bingoCardToBuild" class="w-full max-w-md bg-zinc-950 p-6 rounded-2xl border-2 border-neonBlue/40 relative shadow-2xl transition-all">
+                        
+                        <!-- Watermark Overlay Target -->
+                        <div id="cardWatermark" class="watermark-overlay">NEO BINGO</div>
+
+                        <!-- Card Header -->
+                        <div class="text-center mb-4 relative z-10">
+                            <h2 id="cardHeaderTitle" class="header-title text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neonBlue to-white uppercase">
+                                NEO BINGO
+                            </h2>
+                            <div class="h-[2px] w-1/3 bg-gradient-to-r from-transparent via-neonBlue to-transparent mx-auto mt-1"></div>
+                        </div>
+
+                        <!-- Locked Grid Dynamic Structure Target -->
+                        <div id="bingoGridContainer" class="bingo-grid mb-4 relative z-10">
+                            <!-- Dynamic Content loaded here via JS -->
+                        </div>
+
+                        <!-- Card Footer -->
+                        <div class="text-center relative z-10">
+                            <p id="cardFooterTitle" class="text-[10px] font-mono tracking-widest text-white/55">
+                                PLAY TO WIN • GET 5 IN A ROW
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- TOOLTIP OR GUIDE INFO -->
+                <p class="text-xs text-center text-white/40 font-mono italic">
+                    💡 Click on a filled cell to open image micro-adjust controls (Zoom & Panning).
+                </p>
+
+            </div>
+
+            <!-- TAB-BASED SECONDARY ENGINE DOCK: [LIVE HOST SYSTEM] & [DISTRIBUTION HUB] -->
+            <div class="glass-panel rounded-2xl p-5 border border-white/10 flex flex-col gap-4">
+                
+                <!-- Tab Headers -->
+                <div class="flex border-b border-white/10">
+                    <button onclick="toggleTab('host')" id="tabBtn-host" class="flex-1 py-3 text-center border-b-2 border-neonPink text-neonPink font-bold text-sm tracking-wider font-mono transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-headset"></i> LIVE HOST DECK
+                    </button>
+                    <button onclick="toggleTab('distribute')" id="tabBtn-distribute" class="flex-1 py-3 text-center border-b-2 border-transparent text-white/50 font-bold text-sm tracking-wider font-mono transition-all flex items-center justify-center gap-2 hover:text-white">
+                        <i class="fa-solid fa-share-nodes"></i> PLAYER DISTRIBUTE
+                    </button>
+                </div>
+
+                <!-- TAB 1: LIVE HOST DECK CONTROLLER -->
+                <div id="tabContent-host" class="flex flex-col gap-4 py-2">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        
+                        <!-- DRAW PANEL (7 cols) -->
+                        <div class="md:col-span-7 bg-black/60 rounded-xl border border-white/10 p-4 flex flex-col items-center text-center gap-3 relative">
+                            <span class="absolute top-3 left-3 text-[10px] font-mono tracking-wider text-neonPink uppercase">
+                                Active Drawer Room
+                            </span>
+                            
+                            <!-- Display Screen -->
+                            <div class="w-full aspect-[4/3] rounded-lg bg-black border-2 border-dashed border-neonPink/30 flex flex-col items-center justify-center p-3 relative overflow-hidden mt-2">
+                                
+                                <!-- Standby State -->
+                                <div id="drawScreenStandby" class="flex flex-col items-center gap-2">
+                                    <div class="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center text-white/30 text-xl border border-white/10">
+                                        <i class="fa-solid fa-dice"></i>
+                                    </div>
+                                    <p class="text-sm font-bold text-white/60">Ready to Raffle Symbols</p>
+                                    <p class="text-[10px] font-mono text-white/40">Hosts should trigger draw below</p>
+                                </div>
+
+                                <!-- Countdown View State -->
+                                <div id="drawScreenCountdown" class="hidden flex flex-col items-center justify-center">
+                                    <span id="countdownNumber" class="text-5xl font-black text-neonPink animate-ping">3</span>
+                                    <span class="text-xs font-mono text-white/40 uppercase mt-4">Selecting target...</span>
+                                </div>
+
+                                <!-- Revealed Symbol State -->
+                                <div id="drawScreenRevealed" class="hidden flex flex-col items-center justify-center w-full h-full relative z-10">
+                                    <img id="revealedSymbolImg" src="" alt="Drawn" class="max-h-24 max-w-full rounded-lg object-contain shadow-neonPink border border-neonPink/40">
+                                    <span id="revealedSymbolLabel" class="text-lg font-bold tracking-wide text-white mt-2 drop-shadow-md">Symbol Alpha</span>
+                                </div>
+
+                                <!-- Subtle pulsing neon edge inside screen -->
+                                <div class="absolute inset-0 border border-neonPink/10 pointer-events-none rounded-lg"></div>
+                            </div>
+
+                            <!-- Drawer Config and Draw Button -->
+                            <div class="w-full flex items-center justify-between gap-3">
+                                <div class="text-left">
+                                    <label class="block text-[10px] font-mono text-white/40">DRAW TIME (SEC)</label>
+                                    <select id="drawDelaySelect" class="bg-zinc-900 border border-white/10 rounded px-2 py-1 text-xs text-white">
+                                        <option value="1">1s (Turbo)</option>
+                                        <option value="2" selected>2s (Default)</option>
+                                        <option value="4">4s (Slow)</option>
+                                    </select>
+                                </div>
+
+                                <button onclick="triggerNextDraw()" class="flex-grow py-2.5 px-4 bg-neonPink hover:brightness-110 active:scale-95 transition-all text-white font-bold text-sm uppercase rounded-lg shadow-neonPink flex items-center justify-center gap-2 font-mono">
+                                    <i class="fa-solid fa-bolt"></i> DRAW NEXT SYMBOL
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- HISTORY LOG PANEL (5 cols) -->
+                        <div class="md:col-span-5 bg-black/60 rounded-xl border border-white/10 p-4 flex flex-col gap-2">
+                            <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                                <span class="text-xs font-mono text-white/60">DRAWN LOGS</span>
+                                <button onclick="clearDrawHistory()" class="text-[10px] text-white/40 hover:text-white font-mono"><i class="fa-solid fa-rotate"></i> Reset</button>
+                            </div>
+
+                            <!-- Drawn list -->
+                            <div id="drawHistoryScroll" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                                <!-- Populated dynamically -->
+                                <div class="text-center py-10 text-white/30 text-xs font-mono">
+                                    No draws made yet.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- TAB 2: PLAYER DISTRIBUTION HUB -->
+                <div id="tabContent-distribute" class="hidden flex flex-col gap-4 py-2">
+                    <p class="text-xs text-white/60">
+                        Distribute unique, randomized, interactive digital Bingo Cards dynamically. Players can play on their mobile or tablet browsers instantly.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/40 p-4 rounded-xl border border-white/10">
+                        <!-- QR Code generation display column -->
+                        <div class="flex flex-col items-center justify-center gap-2">
+                            <div id="qrContainer" class="p-3 bg-white rounded-lg border border-white/20 shadow-neonCyan flex items-center justify-center">
+                                <!-- Canvas target generated dynamically -->
+                            </div>
+                            <span class="text-xs font-mono text-neonBlue">SCAN TO RECEIVE PLAYER CARDS</span>
+                        </div>
+
+                        <!-- Links & Session setup column -->
+                        <div class="flex flex-col justify-between gap-3">
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-mono text-white/50">UNIQUE ROUND ID</label>
+                                <div class="flex gap-1">
+                                    <input type="text" id="roundIdField" readonly class="bg-black/60 border border-white/10 rounded px-2 py-1 text-xs text-neonBlue font-mono flex-grow focus:outline-none">
+                                    <button onclick="regenerateSessionRound()" class="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-xs" title="Regenerate session ID">
+                                        <i class="fa-solid fa-arrows-rotate"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-mono text-white/50">SHARE DIRECT LINK</label>
+                                <div class="flex gap-1">
+                                    <input type="text" id="directLinkField" readonly class="bg-black/60 border border-white/10 rounded px-2 py-1 text-xs text-white/80 font-mono flex-grow focus:outline-none">
+                                    <button onclick="copyDirectLink()" class="px-3 py-1 bg-neonBlue/10 text-neonBlue border border-neonBlue/20 hover:border-neonBlue rounded text-xs" title="Copy to Clipboard">
+                                        <i class="fa-solid fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Simulate Open view -->
+                            <button onclick="openInteractivePlayerView()" class="py-2 bg-gradient-to-r from-neonBlue to-neonPurple rounded-lg text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-neonCyan hover:brightness-110 transition-all">
+                                <i class="fa-solid fa-mobile-screen"></i> Launch Virtual Player View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FLOATING MICRO ADJUST CONTROL MODAL (FOR IN-CELL IMAGE MANIPULATION) -->
+    <div id="microAdjustModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 no-print">
+        <div class="glass-panel max-w-sm w-full rounded-2xl p-5 border border-white/20 shadow-neonCyan flex flex-col gap-4">
+            <div class="flex justify-between items-center">
+                <h4 class="font-bold text-white tracking-wide font-mono text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-crop-simple text-neonBlue"></i> Micro-Adjust Cell Image
+                </h4>
+                <button onclick="closeMicroAdjustModal()" class="text-white/40 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="flex flex-col items-center gap-3">
+                <!-- Cropping Simulator Window -->
+                <div class="w-32 h-32 border-2 border-neonBlue rounded-lg overflow-hidden bg-black flex items-center justify-center relative">
+                    <img id="modalCropImgPreview" src="" alt="Preview cell adjust" class="max-w-none origin-center" style="transform: scale(1) translate(0px, 0px);">
+                </div>
+
+                <div class="w-full flex flex-col gap-2 mt-2">
+                    <div>
+                        <div class="flex justify-between text-xs text-white/60 mb-1 font-mono">
+                            <span>Zoom Scale</span>
+                            <span id="zoomVal">1.0x</span>
+                        </div>
+                        <input type="range" id="zoomRange" min="0.5" max="3" step="0.1" value="1" oninput="updateMicroTransform()" class="w-full accent-neonBlue">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                            <div class="flex justify-between text-xs text-white/60 mb-1 font-mono">
+                                <span>Pan X</span>
+                                <span id="panXVal">0px</span>
+                            </div>
+                            <input type="range" id="panXRange" min="-50" max="50" step="2" value="0" oninput="updateMicroTransform()" class="w-full accent-neonBlue">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-white/60 mb-1 font-mono">
+                                <span>Pan Y</span>
+                                <span id="panYVal">0px</span>
+                            </div>
+                            <input type="range" id="panYRange" min="-50" max="50" step="2" value="0" oninput="updateMicroTransform()" class="w-full accent-neonBlue font-mono">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="saveMicroAdjustment()" class="w-full py-2.5 bg-neonBlue text-black font-extrabold text-xs uppercase tracking-widest rounded-lg shadow-neonCyan hover:brightness-110 transition-all mt-1">
+                Save & Apply Alignment
+            </button>
+        </div>
+    </div>
+
+    <!-- EXPORT / PRINT SETTINGS MODAL -->
+    <div id="printConfigModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 no-print">
+        <div class="glass-panel max-w-md w-full rounded-2xl p-6 border border-white/20 shadow-neonPurple flex flex-col gap-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h4 class="font-bold text-white tracking-wide font-mono flex items-center gap-2 text-lg">
+                    <i class="fa-solid fa-file-pdf text-neonPink"></i> Export Layout & Size Configuration
+                </h4>
+                <button onclick="closePrintConfigModal()" class="text-white/40 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="flex flex-col gap-3 text-sm">
+                
+                <div>
+                    <label class="block text-xs font-mono text-white/60 mb-1">PAGE SIZE SHEET</label>
+                    <select id="printPageSize" class="w-full bg-black border border-white/10 rounded-lg p-2 focus:outline-none focus:border-neonPink">
+                        <option value="A4" selected>A4 Format (Standard)</option>
+                        <option value="Letter">Letter Format (US Standard)</option>
+                        <option value="A3">A3 Format (Large Poster)</option>
+                        <option value="Legal">Legal Format (Draft Paper)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-white/60 mb-1">SHEET ORIENTATION</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="orient-portrait-btn" onclick="selectPrintOrientation('portrait')" class="py-2 bg-neonPink/10 border-2 border-neonPink text-neonPink font-mono text-xs rounded-lg flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-arrows-up-down"></i> Portrait
+                        </button>
+                        <button id="orient-landscape-btn" onclick="selectPrintOrientation('landscape')" class="py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-mono text-xs rounded-lg flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-arrows-left-right"></i> Landscape
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-white/5 rounded-lg border border-white/10 text-xs text-white/60 leading-relaxed">
+                    <span class="font-bold text-white block mb-1">💡 Optimal Print Instructions:</span>
+                    When the printing prompt pops up, ensure you toggle on <strong>"Background graphics"</strong> to enable high contrast colors, and set margins to <strong>"None"</strong> for maximum border layout correctness.
+                </div>
+
+                <button onclick="executeSystemPrint()" class="w-full py-3 bg-neonPink hover:brightness-110 active:scale-95 text-white font-black text-sm uppercase tracking-wider rounded-lg shadow-neonPink transition-all flex items-center justify-center gap-2 mt-2">
+                    <i class="fa-solid fa-print"></i> TRIGGER PRINT PROMPT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAYER INTERACTIVE INTERFACE VIEW (PRINT-HIDDEN RESPONSIVE IFRAME / INJECTION PREVIEW MODAL) -->
+    <div id="playerViewModal" class="hidden fixed inset-0 z-50 flex flex-col bg-zinc-950 no-print">
+        <!-- Interactive Header with close switch -->
+        <header class="w-full border-b border-white/10 bg-black/90 py-3 px-6 flex justify-between items-center z-10">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                <span class="font-mono text-xs text-white/70">PLAYER MODE SIMULATOR (SESSION CONNECTED)</span>
+            </div>
+            <button onclick="closeInteractivePlayerView()" class="px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/10 rounded text-xs font-mono text-white transition-all">
+                <i class="fa-solid fa-arrow-left"></i> EXIT PLAYER VIEW
+            </button>
+        </header>
+
+        <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
+            <!-- Sidebar: Draw board sync logs -->
+            <div class="w-full md:w-80 bg-zinc-900 border-b md:border-b-0 md:border-r border-white/15 p-4 flex flex-col gap-4 overflow-y-auto">
+                <div>
+                    <h3 class="font-bold text-sm tracking-wide text-white font-mono flex items-center gap-1 text-neonPink">
+                        <i class="fa-solid fa-bullhorn animate-bounce"></i> CALLING DRAW RADAR
+                    </h3>
+                    <p class="text-[10px] text-white/50">Keep an eye on the host's call board to fill out your card.</p>
+                </div>
+
+                <!-- Last Called Block -->
+                <div class="bg-black/60 rounded-xl p-3 border border-neonPink/20 text-center flex flex-col items-center gap-2">
+                    <span class="text-[10px] font-mono text-neonPink uppercase">Latest Call Board</span>
+                    <div id="pSimulatorLastDraw" class="w-full py-4 text-xs text-white/40 font-mono flex flex-col items-center justify-center gap-1">
+                        <i class="fa-solid fa-rss animate-ping text-white/20 mb-2"></i>
+                        Waiting for Host Call...
+                    </div>
+                </div>
+
+                <!-- Called Grid -->
+                <div>
+                    <span class="text-xs font-mono text-white/60 block mb-2">History Drawn</span>
+                    <div id="pSimulatorHistoryScroll" class="flex gap-2 flex-wrap max-h-48 overflow-y-auto">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Virtual Card Canvas -->
+            <div class="flex-grow flex flex-col items-center justify-center p-6 bg-radial-pattern overflow-y-auto relative">
+                
+                <!-- Target Card structure layout inside simulation space -->
+                <div id="virtualPlayerCard" class="w-full max-w-sm bg-black border border-white/15 rounded-2xl p-4 flex flex-col gap-3 shadow-xl relative">
+                    <div class="absolute inset-0 bg-cover bg-center pointer-events-none opacity-5" style="background-image: radial-gradient(circle, #ff007f 10%, transparent 11%); background-size: 10px 10px;"></div>
+                    
+                    <div class="text-center relative z-10">
+                        <h2 class="font-black text-xl text-white tracking-widest uppercase">
+                            NEO CARD
+                        </h2>
+                        <span class="text-[9px] font-mono text-neonBlue">Interactive Web Console</span>
+                    </div>
+
+                    <!-- Simulator custom interactive Grid layout target -->
+                    <div id="virtualPlayerGrid" class="grid gap-2 aspect-square w-full">
+                        <!-- Dynamic cells here -->
+                    </div>
+
+                    <div class="text-center text-[9px] text-white/40 font-mono">
+                        TAP CELLS TO TOGGLE MARK • GET 5 TO CLAIM WINNER
+                    </div>
+                </div>
+
+                <!-- Claim Victory Trigger -->
+                <button onclick="claimVictory()" class="mt-4 px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full font-bold text-white text-xs uppercase tracking-widest shadow-lg shadow-green-500/20 hover:brightness-110 active:scale-95 transition-all">
+                    🏆 CLAIM BINGO BUSTER!
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- PRINT ELEMENT PORTLET WRAPPER (HIDDEN ON REGULAR SCREEN DISPLAYED ON SYSTEM PRINT) -->
+    <div id="printableCardContainer" class="hidden print-only">
+        <!-- Target generated on print triggers dynamically page by page -->
+    </div>
+
+
+    <!-- FOOTER BRANDING SECTION -->
+    <footer class="no-print mt-auto pt-10 text-center font-mono text-xs text-white/30 border-t border-white/5 mx-6">
+        <p>© 2026 NEO-BINGO ENGINE PRO. ALL RIGHTS RESERVED. DEPLOYED & SIGNED.</p>
+        <p class="text-[10px] text-neonPink/50 mt-1">PROMPT RUNTIME COMPILING INTEGRATED INTERACTION HUB</p>
+    </footer>
+
+
+    <!-- AUDIO SYNTHESIS SOUND ENGINE / VOX & SOUND EFFECTS -->
+    <script>
+        // System wide Audio state
+        let isAudioOn = true;
+        const synth = window.speechSynthesis;
+
+        function toggleAudio() {
+            isAudioOn = !isAudioOn;
+            const soundStatus = document.getElementById("soundStatus");
+            const soundIcon = document.getElementById("soundIcon");
+            const soundToggle = document.getElementById("soundToggle");
+            
+            if (isAudioOn) {
+                soundStatus.innerText = "SOUND: ON";
+                soundIcon.className = "fa-solid fa-volume-high";
+                soundToggle.className = "px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-neonPink/10 hover:border-neonPink transition-all flex items-center gap-2 text-neonPink";
+            } else {
+                soundStatus.innerText = "SOUND: MUTED";
+                soundIcon.className = "fa-solid fa-volume-xmark";
+                soundToggle.className = "px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-white/60 transition-all flex items-center gap-2";
+            }
+        }
+
+        function playSoundEffects(type) {
+            if (!isAudioOn) return;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'draw') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.5);
+                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.5);
+                } else if (type === 'drawn-done') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.3); // G5
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.5);
+                } else if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1800, audioCtx.currentTime + 0.4);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                }
+            } catch(e) {
+                console.warn("WebAudio synthesis failed: " + e);
+            }
+        }
+
+        function speakText(text) {
+            if (!isAudioOn || !synth) return;
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.rate = 1.1;
+            utter.pitch = 1.1;
+            synth.speak(utter);
+        }
+    </script>
+
+
+    <!-- SYSTEM STATE ARCHITECTURE & OPERATIONS -->
+    <script>
+        // CORE GLOBAL STATE
+        const State = {
+            gridSize: 5,
+            assets: [],              // Each asset: { id, src, name, usedCount: 0 }
+            cellMapping: {},          // Map index to assetId or "FREE"
+            cellTransforms: {},       // Scale, X, Y relative settings for images
+            freeSpaceText: "FREE",
+            watermarkEnabled: true,
+            watermarkOpacity: 0.05,
+            headerTitle: "NEO BINGO",
+            footerTitle: "PLAY TO WIN • GET 5 IN A ROW",
+            
+            // Host Drawing Module
+            isDrawing: false,
+            drawnList: [],            // History of drawn items
+            drawTimer: null,
+            
+            // Session Sync
+            sessionRoundId: "NEO-" + Math.floor(Math.random() * 900000 + 100000),
+            
+            // Edit Helper Mode
+            activeEditingCellIndex: null,
+            printOrientation: 'portrait'
+        };
+
+        // Static Sample Asset Pack Setup (Beautiful Neon Elements)
+        const SAMPLE_SYMBOLS = [
+            { name: "Neon Diamond", char: "💎" },
+            { name: "Retro Star", char: "⭐" },
+            { name: "Lightning Bolt", char: "⚡" },
+            { name: "Electric Fire", char: "🔥" },
+            { name: "Digital Rocket", char: "🚀" },
+            { name: "Virtual Dice", char: "🎲" },
+            { name: "Gold Crown", char: "👑" },
+            { name: "Neon Cherries", char: "🍒" },
+            { name: "Digital Heart", char: "❤️" },
+            { name: "Lucky Clover", char: "🍀" },
+            { name: "Cyber Skull", char: "💀" },
+            { name: "Neon Moon", char: "🌙" },
+            { name: "Game Controller", char: "🎮" },
+            { name: "Neon Sun", char: "☀️" },
+            { name: "Retro Alien", char: "👾" },
+            { name: "Lucky Seven", char: "7️⃣" },
+            { name: "Virtual Balloon", char: "🎈" },
+            { name: "Rainbow Cloud", char: "🌈" },
+            { name: "Anchor Glow", char: "⚓" },
+            { name: "Trophy Gold", char: "🏆" },
+            { name: "Neon Key", char: "🔑" },
+            { name: "Bell Metal", char: "🔔" },
+            { name: "Neon Lightbulb", char: "💡" },
+            { name: "Glow Planet", char: "🪐" },
+            { name: "Pixel Shield", char: "🛡️" }
+        ];
+
+        // START ENGINE ON ONLOAD
+        window.addEventListener('load', () => {
+            setGridSize(5);
+            regenerateSessionRound();
+            loadSampleSymbols(true); // Pre-fill sample pool for instant user interactivity
+        });
+
+        // REGENERATE SESSION CODES
+        function regenerateSessionRound() {
+            State.sessionRoundId = "NEO-" + Math.floor(Math.random() * 900000 + 100000);
+            document.getElementById('roundIdField').value = State.sessionRoundId;
+            
+            const origin = window.location.origin + window.location.pathname;
+            const directUrl = `${origin}?session=${State.sessionRoundId}&size=${State.gridSize}`;
+            document.getElementById('directLinkField').value = directUrl;
+
+            // Generate QR Code visually
+            const qrWrapper = document.getElementById('qrContainer');
+            qrWrapper.innerHTML = '';
+            new QRCode(qrWrapper, {
+                text: directUrl,
+                width: 120,
+                height: 120,
+                colorDark : "#030303",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function copyDirectLink() {
+            const linkField = document.getElementById('directLinkField');
+            linkField.select();
+            document.execCommand('copy');
+            playSoundEffects('click');
+            
+            // Dynamic temporary visual banner
+            const btn = document.querySelector('[title="Copy to Clipboard"]');
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+            btn.classList.add('bg-green-500/20', 'text-green-400');
+            setTimeout(() => {
+                btn.innerHTML = origHTML;
+                btn.classList.remove('bg-green-500/20', 'text-green-400');
+            }, 1500);
+        }
+
+        // GRID MANAGER CONFIGURATIONS
+        function setGridSize(size) {
+            playSoundEffects('click');
+            State.gridSize = parseInt(size);
+            
+            // Adjust active CSS button styling
+            document.querySelectorAll('.grid-btn').forEach(btn => {
+                btn.className = "grid-btn py-2.5 rounded-lg border border-white/10 bg-white/5 text-center font-mono font-bold hover:bg-white/10 transition-all text-sm";
+            });
+            const currentBtn = document.getElementById(`grid-btn-${size}`);
+            if (currentBtn) {
+                currentBtn.className = "grid-btn py-2.5 rounded-lg border-2 border-neonBlue bg-neonBlue/10 text-center font-mono font-bold transition-all text-sm text-neonBlue shadow-neonCyan";
+            }
+
+            // FREE Cell is odd grids only
+            const freeCellOption = document.getElementById("freeCellOptionWrapper");
+            if (size % 2 === 1) {
+                freeCellOption.style.opacity = "1";
+                freeCellOption.style.pointerEvents = "auto";
+            } else {
+                freeCellOption.style.opacity = "0.4";
+                freeCellOption.style.pointerEvents = "none";
+            }
+
+            // Clear old map
+            State.cellMapping = {};
+            State.cellTransforms = {};
+            
+            // Build elements on grid canvas
+            buildInteractiveGrid();
+            regenerateSessionRound();
+        }
+
+        // BUILD DYNAMIC GRID EDITOR DOM ELEMENTS
+        function buildInteractiveGrid() {
+            const container = document.getElementById("bingoGridContainer");
+            container.innerHTML = "";
+            container.style.gridTemplateColumns = `repeat(${State.gridSize}, minmax(0, 1fr))`;
+
+            const totalCells = State.gridSize * State.gridSize;
+            const centerIndex = Math.floor(totalCells / 2);
+
+            for (let i = 0; i < totalCells; i++) {
+                const cell = document.createElement("div");
+                cell.className = "bingo-cell rounded-lg flex flex-col items-center justify-center cursor-pointer relative select-none group";
+                cell.setAttribute("data-cell-index", i);
+                
+                // Allow drag placement
+                cell.addEventListener("dragover", dragOverCell);
+                cell.addEventListener("dragleave", dragLeaveCell);
+                cell.addEventListener("drop", dropAssetOnCell);
+                
+                // Click interaction for micro alignment OR picking manually
+                cell.addEventListener("click", () => handleCellClick(i));
+
+                // Check for FREE space
+                if (State.gridSize % 2 === 1 && i === centerIndex) {
+                    State.cellMapping[i] = "FREE";
+                    cell.innerHTML = `
+                        <div class="absolute inset-0 bg-neonPink/10 flex flex-col items-center justify-center border-2 border-neonPink/60 p-1">
+                            <span class="text-[10px] font-black uppercase text-neonPink tracking-wider">FREE</span>
+                            <span id="centerCellLabel" class="text-xs font-bold text-white uppercase text-center break-all font-mono leading-tight">${State.freeSpaceText}</span>
+                        </div>
+                    `;
+                } else {
+                    // Render current mapping state or empty state
+                    const mappedAssetId = State.cellMapping[i];
+                    if (mappedAssetId) {
+                        const assetObj = State.assets.find(a => a.id === mappedAssetId);
+                        if (assetObj) {
+                            renderCellWithAsset(cell, i, assetObj);
+                        } else {
+                            renderEmptyCell(cell, i);
+                        }
+                    } else {
+                        renderEmptyCell(cell, i);
+                    }
+                }
+
+                container.appendChild(cell);
+            }
+        }
+
+        function renderEmptyCell(cell, index) {
+            cell.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-2 opacity-30 group-hover:opacity-80 transition-all text-center">
+                    <span class="text-lg text-white/50"><i class="fa-regular fa-image"></i></span>
+                    <span class="text-[8px] uppercase tracking-wider text-white/40 font-mono mt-1">Empty ${index + 1}</span>
+                </div>
+                <!-- Mini Quick Add indicator -->
+                <div class="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-all text-neonBlue text-[10px]">
+                    <i class="fa-solid fa-plus-circle"></i>
+                </div>
+            `;
+        }
+
+        function renderCellWithAsset(cellElement, index, assetObj) {
+            const transform = State.cellTransforms[index] || { scale: 1, x: 0, y: 0 };
+            
+            cellElement.innerHTML = `
+                <div class="w-full h-full relative overflow-hidden flex items-center justify-center bg-zinc-900">
+                    <img src="${assetObj.src}" 
+                         alt="${assetObj.name}" 
+                         class="pointer-events-none transition-all object-cover w-full h-full"
+                         style="transform: scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px);">
+                    
+                    <!-- Overlay label for info -->
+                    <div class="absolute inset-x-0 bottom-0 bg-black/70 py-1 px-1.5 text-center text-[8px] font-mono tracking-wide text-white/90 truncate uppercase border-t border-white/5">
+                        ${assetObj.name}
+                    </div>
+
+                    <!-- Delete Mini Button -->
+                    <button onclick="event.stopPropagation(); removeAssetFromCell(${index})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 hover:bg-red-500 text-white flex items-center justify-center text-[10px] transition-all opacity-0 group-hover:opacity-100 z-20">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    
+                    <!-- Glow focus overlay -->
+                    <div class="absolute inset-0 border border-neonBlue/40 pointer-events-none opacity-0 group-hover:opacity-100 transition-all"></div>
+                </div>
+            `;
+        }
+
+        // BRANDING CONFIG UPDATERS
+        function updateCardBranding() {
+            State.headerTitle = document.getElementById("cardHeaderInput").value.trim() || "NEO BINGO";
+            State.footerTitle = document.getElementById("cardFooterInput").value.trim() || "PLAY TO WIN • GET 5 IN A ROW";
+            
+            document.getElementById("cardHeaderTitle").innerText = State.headerTitle;
+            document.getElementById("cardFooterTitle").innerText = State.footerTitle;
+        }
+
+        function toggleWatermarkAction(checked) {
+            State.watermarkEnabled = checked;
+            const watermark = document.getElementById("cardWatermark");
+            watermark.style.display = checked ? "flex" : "none";
+        }
+
+        function adjustWatermarkOpacity(val) {
+            const opacity = parseFloat(val) / 100;
+            State.watermarkOpacity = opacity;
+            const watermark = document.getElementById("cardWatermark");
+            watermark.style.opacity = opacity;
+        }
+
+        function updateFreeText(text) {
+            State.freeSpaceText = text.trim() || "FREE";
+            const lbl = document.getElementById("centerCellLabel");
+            if (lbl) {
+                lbl.innerText = State.freeSpaceText;
+            }
+        }
+
+        // GENERATE HIGH-END STOCK SYMBOLS USING CANVAS BASE64 (Resolves image URLs breaking inside isolation environments)
+        function loadSampleSymbols(isInit = false) {
+            if (!isInit) playSoundEffects('success');
+            
+            const generatedAssets = [];
+            
+            SAMPLE_SYMBOLS.forEach((symbol, index) => {
+                // Generate a styled vector graphic as a dataURL using a hidden rendering canvas
+                const canvas = document.createElement("canvas");
+                canvas.width = 120;
+                canvas.height = 120;
+                const ctx = canvas.getContext("2d");
+
+                // Draw luxury premium dark glass circle
+                const grad = ctx.createRadialGradient(60, 60, 10, 60, 60, 60);
+                grad.addColorStop(0, '#1a1a2e');
+                grad.addColorStop(1, '#080811');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 120, 120);
+
+                // Neon Stroke Outer Circle
+                ctx.strokeStyle = index % 2 === 0 ? '#ff007f' : '#00f0ff';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(60, 60, 52, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw emoji or icon inside
+                ctx.font = "46px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = index % 2 === 0 ? 'rgba(255, 0, 127, 0.6)' : 'rgba(0, 240, 255, 0.6)';
+                ctx.shadowBlur = 10;
+                ctx.fillText(symbol.char, 60, 60);
+
+                generatedAssets.push({
+                    id: "sample-" + index,
+                    src: canvas.toDataURL("image/png"),
+                    name: symbol.name,
+                    usedCount: 0
+                });
+            });
+
+            // Append or replace
+            State.assets = generatedAssets;
+            renderAssetTrayShelf();
+        }
+
+        // IMAGE FILE INGEST & READ
+        function handleImageUploads(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            let loadedCount = 0;
+            playSoundEffects('click');
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const uniqueId = "uploaded-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5);
+                    const cleanName = file.name.split('.').slice(0, -1).join('.') || file.name;
+                    
+                    State.assets.push({
+                        id: uniqueId,
+                        src: e.target.result,
+                        name: cleanName.substring(0, 20), // Truncate safety
+                        usedCount: 0
+                    });
+
+                    loadedCount++;
+                    if (loadedCount === files.length) {
+                        playSoundEffects('success');
+                        renderAssetTrayShelf();
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearAssetTray() {
+            playSoundEffects('click');
+            State.assets = [];
+            renderAssetTrayShelf();
+            clearCardGrid();
+        }
+
+        // RENDER ASSET TRAY IN DESKTOP HUD
+        function renderAssetTrayShelf() {
+            const shelf = document.getElementById("assetTrayShelf");
+            const counter = document.getElementById("assetCounter");
+            shelf.innerHTML = "";
+
+            counter.innerText = `${State.assets.length} ASSETS`;
+
+            if (State.assets.length === 0) {
+                shelf.innerHTML = `
+                    <div class="col-span-full py-10 text-center text-xs text-white/30 font-mono">
+                        No assets in tray.
+                    </div>
+                `;
+                return;
+            }
+
+            State.assets.forEach(asset => {
+                const item = document.createElement("div");
+                item.className = "relative bg-zinc-900 rounded-lg p-1 border border-white/10 hover:border-neonPink cursor-grab transition-all aspect-square flex flex-col items-center justify-between group";
+                item.setAttribute("draggable", "true");
+                
+                // Set payload on drag start
+                item.addEventListener("dragstart", (e) => {
+                    e.dataTransfer.setData("text/plain", asset.id);
+                    item.classList.add("opacity-50");
+                });
+
+                item.addEventListener("dragend", () => {
+                    item.classList.remove("opacity-50");
+                });
+
+                // Asset Quick Info panel inside container
+                item.innerHTML = `
+                    <img src="${asset.src}" alt="${asset.name}" class="max-h-[75%] object-contain rounded">
+                    <span class="text-[8px] font-mono tracking-tight text-white/50 group-hover:text-white block text-center truncate w-full mt-0.5">
+                        ${asset.name}
+                    </span>
+                    <!-- Used badge counter -->
+                    ${asset.usedCount > 0 ? `
+                        <span class="absolute top-0.5 right-0.5 bg-neonPink text-white font-mono text-[7px] px-1 rounded-full">
+                            ${asset.usedCount}
+                        </span>
+                    ` : ''}
+                `;
+
+                shelf.appendChild(item);
+            });
+        }
+
+        // DRAG & DROP RULES IMPLEMENTED
+        function dragOverCell(e) {
+            e.preventDefault();
+            const idx = this.getAttribute("data-cell-index");
+            // If grid center is 5x5 FREE - prevent overriding it
+            if (State.gridSize % 2 === 1 && idx == Math.floor((State.gridSize * State.gridSize) / 2)) {
+                return;
+            }
+            this.classList.add("active-drag-over");
+        }
+
+        function dragLeaveCell() {
+            this.classList.remove("active-drag-over");
+        }
+
+        function dropAssetOnCell(e) {
+            e.preventDefault();
+            this.classList.remove("active-drag-over");
+            
+            const cellIndex = parseInt(this.getAttribute("data-cell-index"));
+            const assetId = e.dataTransfer.getData("text/plain");
+            
+            if (!assetId) return;
+            
+            assignAssetToCell(cellIndex, assetId);
+        }
+
+        function assignAssetToCell(cellIndex, assetId) {
+            playSoundEffects('click');
+            
+            // Check Duplication settings
+            const noDupes = document.getElementById("noDuplicatesToggle").checked;
+            if (noDupes) {
+                // If this asset is mapped elsewhere, wipe it from that location first
+                for (let key in State.cellMapping) {
+                    if (State.cellMapping[key] === assetId) {
+                        delete State.cellMapping[key];
+                        delete State.cellTransforms[key];
+                    }
+                }
+            }
+
+            // Assign
+            State.cellMapping[cellIndex] = assetId;
+            State.cellTransforms[cellIndex] = { scale: 1.0, x: 0, y: 0 }; // Initialize fresh alignments
+
+            recalculateAssetUsageCounters();
+            buildInteractiveGrid();
+        }
+
+        function removeAssetFromCell(index) {
+            playSoundEffects('click');
+            delete State.cellMapping[index];
+            delete State.cellTransforms[index];
+            recalculateAssetUsageCounters();
+            buildInteractiveGrid();
+        }
+
+        function clearCardGrid() {
+            playSoundEffects('click');
+            for (let i = 0; i < (State.gridSize * State.gridSize); i++) {
+                const totalCells = State.gridSize * State.gridSize;
+                const centerIndex = Math.floor(totalCells / 2);
+                if (State.gridSize % 2 === 1 && i === centerIndex) continue; // Skip Center Free
+                delete State.cellMapping[i];
+                delete State.cellTransforms[i];
+            }
+            recalculateAssetUsageCounters();
+            buildInteractiveGrid();
+        }
+
+        function recalculateAssetUsageCounters() {
+            // Reset
+            State.assets.forEach(a => a.usedCount = 0);
+            
+            // Tally
+            for (let key in State.cellMapping) {
+                const id = State.cellMapping[key];
+                const found = State.assets.find(a => a.id === id);
+                if (found) found.usedCount++;
+            }
+            renderAssetTrayShelf();
+        }
+
+        // FILTER IMAGES IN TRAY
+        function filterAssets(val) {
+            const query = val.toLowerCase().trim();
+            const shelfItems = document.getElementById("assetTrayShelf").children;
+            
+            if (query === "") {
+                renderAssetTrayShelf();
+                return;
+            }
+
+            State.assets.forEach((asset, idx) => {
+                const domNode = shelfItems[idx];
+                if (domNode) {
+                    if (asset.name.toLowerCase().includes(query)) {
+                        domNode.style.display = "flex";
+                    } else {
+                        domNode.style.display = "none";
+                    }
+                }
+            });
+        }
+
+        // AUTO FILL ENGINE SHUFFLE SYSTEM
+        function autoDistributeAssets() {
+            if (State.assets.length === 0) {
+                // Flash alert modal substitution
+                showStatusToast("Please upload assets or load neon symbols first!", "error");
+                return;
+            }
+
+            playSoundEffects('success');
+            const totalCells = State.gridSize * State.gridSize;
+            const centerIndex = Math.floor(totalCells / 2);
+            
+            // Shuffle assets
+            const pool = [...State.assets];
+            
+            // Fisher-Yates Shuffle
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            const noDupes = document.getElementById("noDuplicatesToggle").checked;
+            let assetIndexPointer = 0;
+
+            for (let i = 0; i < totalCells; i++) {
+                // If odd and center, leave FREE space
+                if (State.gridSize % 2 === 1 && i === centerIndex) {
+                    continue;
+                }
+
+                if (noDupes) {
+                    // Loop or stop if assets run out
+                    if (assetIndexPointer >= pool.length) {
+                        delete State.cellMapping[i]; // Clear
+                    } else {
+                        State.cellMapping[i] = pool[assetIndexPointer].id;
+                        State.cellTransforms[i] = { scale: 1, x: 0, y: 0 };
+                        assetIndexPointer++;
+                    }
+                } else {
+                    // Pull randomly allowing duplicates
+                    const randAsset = pool[Math.floor(Math.random() * pool.length)];
+                    State.cellMapping[i] = randAsset.id;
+                    State.cellTransforms[i] = { scale: 1, x: 0, y: 0 };
+                }
+            }
+
+            recalculateAssetUsageCounters();
+            buildInteractiveGrid();
+            showStatusToast("Grid filled with random assets successfully!", "success");
+        }
+
+        // MODAL ADVERTS FOR USER ACTIONS (NO ALERT FOR EXTREME REFINEMENT)
+        function showStatusToast(message, type = 'info') {
+            // Self-destruct popup element
+            const toast = document.createElement("div");
+            toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg border flex items-center gap-3 shadow-lg transition-all transform translate-y-10 opacity-0 font-mono text-xs max-w-sm`;
+            
+            if (type === 'success') {
+                toast.className += " bg-emerald-950 border-emerald-500 text-emerald-400 shadow-emerald-500/10";
+                toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${message}</span>`;
+            } else if (type === 'error') {
+                toast.className += " bg-red-950 border-red-500 text-red-400 shadow-red-500/10";
+                toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-400"></i> <span>${message}</span>`;
+            } else {
+                toast.className += " bg-zinc-900 border-neonBlue text-neonBlue shadow-neonCyan/10";
+                toast.innerHTML = `<i class="fa-solid fa-info-circle text-neonBlue"></i> <span>${message}</span>`;
+            }
+
+            document.body.appendChild(toast);
+            
+            // Trigger animation frame delay
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // TAB NAVIGATION DECK
+        function toggleTab(tabId) {
+            playSoundEffects('click');
+            const hostBtn = document.getElementById("tabBtn-host");
+            const distBtn = document.getElementById("tabBtn-distribute");
+            const hostContent = document.getElementById("tabContent-host");
+            const distContent = document.getElementById("tabContent-distribute");
+
+            if (tabId === 'host') {
+                hostBtn.className = "flex-1 py-3 text-center border-b-2 border-neonPink text-neonPink font-bold text-sm tracking-wider font-mono transition-all flex items-center justify-center gap-2";
+                distBtn.className = "flex-1 py-3 text-center border-b-2 border-transparent text-white/50 font-bold text-sm tracking-wider font-mono transition-all flex items-center justify-center gap-2 hover:text-white";
+                hostContent.classList.remove('hidden');
+                distContent.classList.add('hidden');
+            } else {
+                distBtn.className = "flex-1 py-3 text-center border-b-2 border-neonBlue text-neonBlue font-bold text-sm tracking-wider font-mono transition-all flex items-center justify-center gap-2";
+                hostBtn.className = "flex-1 py-3 text-center border-b-2 border-transparent text-white/50 font-bold text-sm tracking-wider font-mono transition-all flex items-center justify-center gap-2 hover:text-white";
+                distContent.classList.remove('hidden');
+                hostContent.classList.add('hidden');
+            }
+        }
+
+        // HANDLERS FOR EDITING CELL ALIGNMENT
+        function handleCellClick(index) {
+            const mappedAssetId = State.cellMapping[index];
+            if (!mappedAssetId || mappedAssetId === "FREE") {
+                // Fallback: trigger quick asset selector from library inside tray
+                showStatusToast("Tip: Drag an image from your asset tray library left, or click Auto-Fill!", "info");
+                return;
+            }
+
+            playSoundEffects('click');
+            const assetObj = State.assets.find(a => a.id === mappedAssetId);
+            if (!assetObj) return;
+
+            State.activeEditingCellIndex = index;
+
+            // Load values to control modal
+            const config = State.cellTransforms[index] || { scale: 1.0, x: 0, y: 0 };
+            document.getElementById("zoomRange").value = config.scale;
+            document.getElementById("panXRange").value = config.x;
+            document.getElementById("panYRange").value = config.y;
+
+            // Load elements inside modal
+            const prevImg = document.getElementById("modalCropImgPreview");
+            prevImg.src = assetObj.src;
+            
+            // Set scale visuals
+            updateMicroTransform();
+
+            // Open Modal
+            document.getElementById("microAdjustModal").classList.remove('hidden');
+        }
+
+        function closeMicroAdjustModal() {
+            playSoundEffects('click');
+            document.getElementById("microAdjustModal").classList.add('hidden');
+        }
+
+        function updateMicroTransform() {
+            const scale = document.getElementById("zoomRange").value;
+            const x = document.getElementById("panXRange").value;
+            const y = document.getElementById("panYRange").value;
+
+            // Update Label reads
+            document.getElementById("zoomVal").innerText = `${parseFloat(scale).toFixed(1)}x`;
+            document.getElementById("panXVal").innerText = `${x}px`;
+            document.getElementById("panYVal").innerText = `${y}px`;
+
+            const prevImg = document.getElementById("modalCropImgPreview");
+            prevImg.style.transform = `scale(${scale}) translate(${x}px, ${y}px)`;
+        }
+
+        function saveMicroAdjustment() {
+            const index = State.activeEditingCellIndex;
+            if (index === null) return;
+
+            const scale = parseFloat(document.getElementById("zoomRange").value);
+            const x = parseFloat(document.getElementById("panXRange").value);
+            const y = parseFloat(document.getElementById("panYRange").value);
+
+            State.cellTransforms[index] = { scale, x, y };
+            
+            buildInteractiveGrid();
+            closeMicroAdjustModal();
+            showStatusToast(`Cell alignment settings successfully applied!`, "success");
+        }
+
+
+        // LIVE HOST DRAW & RAFFLE MODULE
+        function triggerNextDraw() {
+            if (State.isDrawing) return;
+            if (State.assets.length === 0) {
+                showStatusToast("Your image library is empty! Please load assets to draw from.", "error");
+                return;
+            }
+
+            // Find all unused symbols to draw next
+            const availableSymbols = State.assets.filter(a => !State.drawnList.includes(a.id));
+            if (availableSymbols.length === 0) {
+                showStatusToast("All images in the library have already been called!", "error");
+                speakText("All available symbols drawn!");
+                return;
+            }
+
+            playSoundEffects('draw');
+            State.isDrawing = true;
+
+            // Trigger countdown UI screens
+            document.getElementById("drawScreenStandby").classList.add('hidden');
+            document.getElementById("drawScreenRevealed").classList.add('hidden');
+            const countdownScreen = document.getElementById("drawScreenCountdown");
+            countdownScreen.classList.remove('hidden');
+
+            const delaySec = parseInt(document.getElementById("drawDelaySelect").value);
+            let ticker = delaySec;
+            const numEl = document.getElementById("countdownNumber");
+            numEl.innerText = ticker;
+
+            const interval = setInterval(() => {
+                ticker--;
+                if (ticker > 0) {
+                    numEl.innerText = ticker;
+                    playSoundEffects('click');
+                } else {
+                    clearInterval(interval);
+                    
+                    // Conclude Drawing
+                    const chosen = availableSymbols[Math.floor(Math.random() * availableSymbols.length)];
+                    State.drawnList.push(chosen.id);
+
+                    // Reveal on HUD screen
+                    countdownScreen.classList.add('hidden');
+                    const revealScreen = document.getElementById("drawScreenRevealed");
+                    revealScreen.classList.remove('hidden');
+
+                    const rImg = document.getElementById("revealedSymbolImg");
+                    const rLabel = document.getElementById("revealedSymbolLabel");
+                    rImg.src = chosen.src;
+                    rLabel.innerText = chosen.name;
+
+                    playSoundEffects('drawn-done');
+                    speakText(`Symbol drawn: ${chosen.name}`);
+
+                    // Push to Called History Log UI
+                    addDrawnLogToPanel(chosen);
+
+                    // Sync Virtual Player Card view in background
+                    updatePlayerSimLogs();
+
+                    State.isDrawing = false;
+                }
+            }, 1000);
+        }
+
+        function addDrawnLogToPanel(asset) {
+            const list = document.getElementById("drawHistoryScroll");
+            
+            // Remove empty placeholder
+            if (State.drawnList.length === 1) {
+                list.innerHTML = "";
+            }
+
+            const card = document.createElement("div");
+            card.className = "flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10 hover:border-neonPink transition-all";
+            card.innerHTML = `
+                <img src="${asset.src}" alt="${asset.name}" class="w-8 h-8 rounded object-contain bg-black">
+                <div class="flex-grow text-left">
+                    <span class="block text-xs font-bold text-white truncate">${asset.name}</span>
+                    <span class="text-[8px] font-mono text-neonPink uppercase">Call #${State.drawnList.length}</span>
+                </div>
+            `;
+            list.insertBefore(card, list.firstChild);
+        }
+
+        function clearDrawHistory() {
+            playSoundEffects('click');
+            State.drawnList = [];
+            
+            document.getElementById("drawScreenStandby").classList.remove('hidden');
+            document.getElementById("drawScreenCountdown").classList.add('hidden');
+            document.getElementById("drawScreenRevealed").classList.add('hidden');
+
+            document.getElementById("drawHistoryScroll").innerHTML = `
+                <div class="text-center py-10 text-white/30 text-xs font-mono">
+                    No draws made yet.
+                </div>
+            `;
+
+            updatePlayerSimLogs();
+            showStatusToast("Host Draw History logs cleared successfully.", "success");
+        }
+
+
+        // PLAYER MODE SIMULATION HUB
+        const virtualState = {
+            cardCellMapping: {},      // Generated layout specifically for the simulation model player
+            cardCellTransforms: {},
+            userMarks: {}             // Traces mapped grid cells clicked by the virtual player
+        };
+
+        function openInteractivePlayerView() {
+            if (State.assets.length === 0) {
+                showStatusToast("Load assets on host deck to launch virtual card simulator!", "error");
+                return;
+            }
+
+            playSoundEffects('success');
+            document.getElementById("playerViewModal").classList.remove('hidden');
+
+            // Generate localized custom grid pattern mimicking user login
+            generateVirtualUserCard();
+            updatePlayerSimLogs();
+        }
+
+        function closeInteractivePlayerView() {
+            playSoundEffects('click');
+            document.getElementById("playerViewModal").classList.add('hidden');
+        }
+
+        function generateVirtualUserCard() {
+            virtualState.cardCellMapping = {};
+            virtualState.cardCellTransforms = {};
+            virtualState.userMarks = {};
+
+            const totalCells = State.gridSize * State.gridSize;
+            const centerIndex = Math.floor(totalCells / 2);
+
+            // Fetch a random pool subset from host asset library
+            const pool = [...State.assets];
+            
+            // Fisher-Yates
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            for (let i = 0; i < totalCells; i++) {
+                if (State.gridSize % 2 === 1 && i === centerIndex) {
+                    virtualState.cardCellMapping[i] = "FREE";
+                    virtualState.userMarks[i] = true; // FREE is pre-checked
+                    continue;
+                }
+
+                // Fill from shuffled pool, looping if assets size are smaller
+                const selectedAsset = pool[i % pool.length];
+                virtualState.cardCellMapping[i] = selectedAsset.id;
+                
+                // Fetch transform from original or default
+                virtualState.cardCellTransforms[i] = State.cellTransforms[i] || { scale: 1, x: 0, y: 0 };
+            }
+
+            renderVirtualPlayerGrid();
+        }
+
+        function renderVirtualPlayerGrid() {
+            const grid = document.getElementById("virtualPlayerGrid");
+            grid.innerHTML = "";
+            grid.style.gridTemplateColumns = `repeat(${State.gridSize}, minmax(0, 1fr))`;
+
+            const totalCells = State.gridSize * State.gridSize;
+            const centerIndex = Math.floor(totalCells / 2);
+
+            for (let i = 0; i < totalCells; i++) {
+                const cell = document.createElement("div");
+                cell.className = "aspect-square border border-white/10 rounded-lg overflow-hidden relative cursor-pointer select-none transition-all";
+                
+                cell.addEventListener("click", () => togglePlayerCellMark(i));
+
+                const isMarked = virtualState.userMarks[i];
+
+                if (State.gridSize % 2 === 1 && i === centerIndex) {
+                    cell.className += " border-2 border-neonPink shadow-neonPink/20";
+                    cell.innerHTML = `
+                        <div class="absolute inset-0 bg-neonPink/20 flex flex-col items-center justify-center p-1">
+                            <span class="text-[7px] font-black uppercase text-neonPink">FREE</span>
+                            <span class="text-[9px] font-bold text-white text-center truncate w-full">${State.freeSpaceText}</span>
+                            <div class="absolute inset-0 flex items-center justify-center bg-neonPink/20 pointer-events-none">
+                                <i class="fa-solid fa-crosshairs text-neonPink text-base"></i>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const assetId = virtualState.cardCellMapping[i];
+                    const assetObj = State.assets.find(a => a.id === assetId);
+
+                    if (assetObj) {
+                        const transform = virtualState.cardCellTransforms[i] || { scale: 1, x: 0, y: 0 };
+                        cell.innerHTML = `
+                            <div class="w-full h-full relative flex items-center justify-center bg-zinc-900">
+                                <img src="${assetObj.src}" alt="${assetObj.name}" class="w-full h-full object-cover pointer-events-none" style="transform: scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px);">
+                                
+                                <!-- Marked Marker overlay stamp -->
+                                <div id="mark-stamp-${i}" class="${isMarked ? 'flex' : 'hidden'} absolute inset-0 bg-neonBlue/45 backdrop-blur-[1px] items-center justify-center pointer-events-none">
+                                    <div class="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-white text-base bg-neonBlue shadow-lg shadow-neonBlue/40">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        cell.innerHTML = `<div class="bg-zinc-950 w-full h-full"></div>`;
+                    }
+                }
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function togglePlayerCellMark(index) {
+            playSoundEffects('click');
+            virtualState.userMarks[index] = !virtualState.userMarks[index];
+            renderVirtualPlayerGrid();
+        }
+
+        function updatePlayerSimLogs() {
+            // Simulator sync from live state
+            const lastDrawBlock = document.getElementById("pSimulatorLastDraw");
+            const historyScroll = document.getElementById("pSimulatorHistoryScroll");
+
+            if (State.drawnList.length === 0) {
+                lastDrawBlock.innerHTML = `
+                    <i class="fa-solid fa-rss animate-ping text-white/20 mb-2"></i>
+                    Waiting for Host Call...
+                `;
+                historyScroll.innerHTML = `<span class="text-[10px] text-white/30 font-mono">None called yet</span>`;
+                return;
+            }
+
+            const latestAssetId = State.drawnList[State.drawnList.length - 1];
+            const latestAsset = State.assets.find(a => a.id === latestAssetId);
+
+            if (latestAsset) {
+                lastDrawBlock.innerHTML = `
+                    <img src="${latestAsset.src}" class="w-12 h-12 object-contain bg-black rounded border border-neonPink/45">
+                    <span class="text-xs font-bold text-white uppercase">${latestAsset.name}</span>
+                `;
+            }
+
+            // Drawn list
+            historyScroll.innerHTML = "";
+            State.drawnList.forEach(assetId => {
+                const asset = State.assets.find(a => a.id === assetId);
+                if (asset) {
+                    const badge = document.createElement("div");
+                    badge.className = "flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded text-[9px]";
+                    badge.innerHTML = `
+                        <img src="${asset.src}" class="w-4 h-4 object-contain">
+                        <span class="text-white truncate max-w-[60px]">${asset.name}</span>
+                    `;
+                    historyScroll.appendChild(badge);
+                }
+            });
+        }
+
+        function claimVictory() {
+            // Verify if there is at least one completed row/column/diagonal
+            const size = State.gridSize;
+            const marks = virtualState.userMarks;
+            let winDetected = false;
+
+            // Generate dimensional arrays
+            const board = [];
+            for (let r = 0; r < size; r++) {
+                const row = [];
+                for (let c = 0; c < size; c++) {
+                    const index = r * size + c;
+                    row.push(!!marks[index]);
+                }
+                board.push(row);
+            }
+
+            // 1. Check Rows
+            for (let r = 0; r < size; r++) {
+                if (board[r].every(val => val === true)) winDetected = true;
+            }
+
+            // 2. Check Cols
+            for (let c = 0; c < size; c++) {
+                let colFull = true;
+                for (let r = 0; r < size; r++) {
+                    if (!board[r][c]) colFull = false;
+                }
+                if (colFull) winDetected = true;
+            }
+
+            // 3. Diagonal TopLeft -> BottomRight
+            let diag1 = true;
+            for (let i = 0; i < size; i++) {
+                if (!board[i][i]) diag1 = false;
+            }
+            if (diag1) winDetected = true;
+
+            // 4. Diagonal BottomLeft -> TopRight
+            let diag2 = true;
+            for (let i = 0; i < size; i++) {
+                if (!board[i][size - 1 - i]) diag2 = false;
+            }
+            if (diag2) winDetected = true;
+
+            if (winDetected) {
+                playSoundEffects('success');
+                speakText("Bingo Buster! You are the winner!");
+                
+                // Show celebration overlay toast
+                showStatusToast("🏆 VICTORY VALIDATED! Complete row/column alignment detected!", "success");
+            } else {
+                playSoundEffects('click');
+                showStatusToast("Claim rejected: No complete row, column, or diagonal filled yet.", "error");
+            }
+        }
+
+
+        // MULTI-FORMAT PRINT ENGINE PRO
+        function triggerPrintModal() {
+            playSoundEffects('click');
+            document.getElementById("printConfigModal").classList.remove('hidden');
+        }
+
+        function closePrintConfigModal() {
+            playSoundEffects('click');
+            document.getElementById("printConfigModal").classList.add('hidden');
+        }
+
+        function selectPrintOrientation(orient) {
+            playSoundEffects('click');
+            State.printOrientation = orient;
+            
+            const pBtn = document.getElementById("orient-portrait-btn");
+            const lBtn = document.getElementById("orient-landscape-btn");
+
+            if (orient === 'portrait') {
+                pBtn.className = "py-2 bg-neonPink/10 border-2 border-neonPink text-neonPink font-mono text-xs rounded-lg flex items-center justify-center gap-1";
+                lBtn.className = "py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-mono text-xs rounded-lg flex items-center justify-center gap-1";
+            } else {
+                lBtn.className = "py-2 bg-neonPink/10 border-2 border-neonPink text-neonPink font-mono text-xs rounded-lg flex items-center justify-center gap-1";
+                pBtn.className = "py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-mono text-xs rounded-lg flex items-center justify-center gap-1";
+            }
+        }
+
+        function executeSystemPrint() {
+            // Re-render layout targets inside the dedicated printing portal
+            const printContainer = document.getElementById("printableCardContainer");
+            printContainer.innerHTML = "";
+
+            // Dynamic format page-break scale settings
+            const sizeStyleClass = State.printOrientation === 'portrait' ? 'format-portrait' : 'format-landscape';
+            document.documentElement.className = sizeStyleClass;
+
+            // Create individual Printable page elements
+            const cardPage = document.createElement("div");
+            cardPage.className = "print-card-wrapper flex flex-col items-center justify-center bg-white text-black p-10 h-screen w-screen relative";
+
+            // Copy Header/Footer specs
+            const headTitleStr = State.headerTitle;
+            const footTitleStr = State.footerTitle;
+
+            // Compute actual grid elements
+            let gridHTML = "";
+            const totalCells = State.gridSize * State.gridSize;
+            const centerIndex = Math.floor(totalCells / 2);
+
+            for (let i = 0; i < totalCells; i++) {
+                if (State.gridSize % 2 === 1 && i === centerIndex) {
+                    gridHTML += `
+                        <div class="border-2 border-black flex flex-col items-center justify-center p-2 text-center relative bg-zinc-100" style="aspect-ratio: 1/1;">
+                            <span class="text-[8px] font-extrabold uppercase tracking-widest text-zinc-600 block">FREE</span>
+                            <span class="text-xs font-black uppercase text-black break-all leading-tight">${State.freeSpaceText}</span>
+                        </div>
+                    `;
+                } else {
+                    const assetId = State.cellMapping[i];
+                    const assetObj = State.assets.find(a => a.id === assetId);
+
+                    if (assetObj) {
+                        const transform = State.cellTransforms[i] || { scale: 1, x: 0, y: 0 };
+                        gridHTML += `
+                            <div class="border-2 border-black flex items-center justify-center relative overflow-hidden bg-white" style="aspect-ratio: 1/1;">
+                                <img src="${assetObj.src}" class="w-full h-full object-cover" style="transform: scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px);">
+                                <span class="absolute bottom-0.5 inset-x-0 text-center text-[7px] font-black uppercase tracking-wider text-black bg-white/90 truncate border-t border-black">
+                                    ${assetObj.name}
+                                </span>
+                            </div>
+                        `;
+                    } else {
+                        gridHTML += `
+                            <div class="border-2 border-black flex flex-col items-center justify-center bg-white" style="aspect-ratio: 1/1;">
+                                <span class="text-[7px] font-mono text-zinc-400">#${i + 1}</span>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            cardPage.innerHTML = `
+                <!-- Watermark Overlay Target -->
+                ${State.watermarkEnabled ? `<div class="watermark-overlay" style="opacity: ${State.watermarkOpacity + 0.05}; color: #000;">NEO BINGO</div>` : ''}
+
+                <!-- Container Block -->
+                <div class="w-full max-w-lg flex flex-col justify-between border-4 border-black p-8 rounded-3xl relative z-10" style="aspect-ratio: 4/5;">
+                    <!-- Title Header -->
+                    <div class="text-center mb-6">
+                        <h2 class="text-4xl font-black tracking-widest text-black uppercase" style="font-family: 'Rajdhani', sans-serif;">
+                            ${headTitleStr}
+                        </h2>
+                        <div class="h-1 w-1/3 bg-black mx-auto mt-1.5"></div>
+                    </div>
+
+                    <!-- Inner Grid Layout -->
+                    <div class="grid gap-2 mb-6" style="grid-template-columns: repeat(${State.gridSize}, minmax(0, 1fr)); width: 100%; aspect-ratio: 1/1;">
+                        ${gridHTML}
+                    </div>
+
+                    <!-- Footer Details -->
+                    <div class="text-center">
+                        <p class="text-[10px] font-mono font-bold tracking-widest text-zinc-700">
+                            ${footTitleStr}
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            printContainer.appendChild(cardPage);
+
+            closePrintConfigModal();
+            
+            // Trigger standard system print
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+    </script>
+</body>
+</html>
